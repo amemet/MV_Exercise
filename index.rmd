@@ -1,0 +1,78 @@
+
+---
+title: "Exercise Multivariate"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r chart1, echo=TRUE}
+library(openxlsx)
+link="https://github.com/EvansDataScience/data/raw/master/safeCitiesIndexAll.xlsx"
+
+safe=read.xlsx(link)
+```
+
+```{r chart2, echo=TRUE}
+grep("H_In_", colnames(safe) ) 
+```
+```{r chart3, echo=TRUE}
+positionsIN=grep("H_In_", colnames(safe) )
+head(safe[,c(1,positionsIN)])
+```
+
+```{r chart4, echo=TRUE}
+library(ggplot2)
+library(GGally)
+base= ggcorr(safe[,-1],size=1,layout.exp=4,hjust=0.9,
+             nbreaks = 3,
+             palette = "PuOr") 
+
+base + guides(fill=guide_legend("Health Safety in Cities"))
+```
+```{r chart4-1, echo=TRUE}
+library(openxlsx)
+link2="https://github.com/EvansDataScience/data/raw/master/safeCitiesIndex.xlsx"
+
+safe2=read.xlsx(link2)
+```
+
+
+```{r chart5, echo=TRUE}
+model1=lm(PERSONAL~HEALTH+INFRASTRUCTURE,data=safe2[,-1])
+```
+
+```{r chart6, echo=TRUE}
+library(dotwhisker)
+library(broom)
+library(dplyr)
+```
+
+```{r chart7, echo=TRUE}
+model1_t = tidy(model1) %>%   # we save the result as a tidy object and...
+    mutate(model = "Model 1") # we add a column 'model' with values 'Model 1'
+
+model1_t
+```
+
+```{r chart8, echo=TRUE}
+model2=lm(PERSONAL~.,data=safe2[,-1]) # ~. means: all the remaining variables
+summary(model2)
+```
+```{r chart9, echo=TRUE}
+model2_t <- tidy(model2) %>% mutate(model = "Model 2")
+```
+
+```{r chart10, echo=TRUE}
+
+titleText1= "Regression Analysis: Safety in Cities"
+sourceText= "Data from NEC"
+allModels=rbind(model1_t, model2_t)
+
+#plotting
+dwplot(allModels) + labs(title=titleText1,
+                     x =NULL, 
+                     y = NULL,
+                     caption = sourceText)
+```
+
